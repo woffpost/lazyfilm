@@ -173,7 +173,7 @@ const HomePage = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {aiMutation.data.map((movie) => (
                   <div key={movie.id} className="bg-gray-800/40 border border-gray-800 rounded-3xl overflow-hidden flex flex-col shadow-xl">
-                    <Link to={`/movie/${movie.id}`} className="block relative overflow-hidden aspect-[2/3] group">
+                    <Link to={`/movie/${movie.id}`} className="block relative overflow-hidden aspect-2/3 group">
                       <img
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         src={`${TMDB_IMAGE_W200}/${movie.poster_path}`}
