@@ -40,7 +40,7 @@ interface EnrichedAiMovie {
 const fetchAiRecommendationsWithDetails = async (quizAnswers: QuizAnswers): Promise<EnrichedAiMovie[]> => {
   // Проверяй, чтобы адрес строго соответствовал роуту со слэшем на конце!
   const { data: aiRecommendations } = await axios.post<{ id: number; reason: string }[]>(
-    "https://onrender.com", 
+    "https://cinebrowselite-be.onrender.com/api/ai/recommend/", 
     quizAnswers
   );
 
