@@ -4,7 +4,7 @@ import { useInView } from "react-intersection-observer";
 import { useDebounce } from "use-debounce";
 
 import api from "../api/axios"; // Кастомный инстанс для TMDB
-import axios from "axios";       // Чистый оригинальный axios для нашего бэкенда
+import axios from "axios"; // Чистый оригинальный axios для нашего бэкенда
 import { Link } from "react-router-dom";
 import { MovieSkeleton } from "../components/MovieSkeleton";
 import { MovieQuiz } from "@/components/MovieQuiz";
@@ -16,7 +16,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "../components/ui/select";
 
 interface QuizAnswers {
@@ -37,12 +37,13 @@ interface EnrichedAiMovie {
   [key: string]: unknown;
 }
 
-const fetchAiRecommendationsWithDetails = async (quizAnswers: QuizAnswers): Promise<EnrichedAiMovie[]> => {
+const fetchAiRecommendationsWithDetails = async (
+  quizAnswers: QuizAnswers,
+): Promise<EnrichedAiMovie[]> => {
   // Проверяй, чтобы адрес строго соответствовал роуту со слэшем на конце!
-  const { data: aiRecommendations } = await axios.post<{ id: number; reason: string }[]>(
-    "https://cinebrowselite-be.onrender.com/api/ai/recommend/", 
-    quizAnswers
-  );
+  const { data: aiRecommendations } = await axios.post<
+    { id: number; reason: string }[]
+  >("https://cinebrowselite-be.onrender.com/api/ai/recommend/", quizAnswers);
 
   const enrichedMovies = await Promise.all(
     aiRecommendations.map(async (rec) => {
@@ -53,10 +54,12 @@ const fetchAiRecommendationsWithDetails = async (quizAnswers: QuizAnswers): Prom
         console.error(`Фильм с ID ${rec.id} не найден в базе TMDB`, err);
         return null;
       }
-    })
+    }),
   );
 
-  return enrichedMovies.filter((movie): movie is EnrichedAiMovie => movie !== null);
+  return enrichedMovies.filter(
+    (movie): movie is EnrichedAiMovie => movie !== null,
+  );
 };
 
 const fetchGenres = async () => {
@@ -78,21 +81,27 @@ const HomePage = () => {
     queryFn: fetchGenres,
   });
 
-  const { 
-    data: browseData, 
-    isLoading: isBrowseLoading, 
+  const {
+    data: browseData,
+    isLoading: isBrowseLoading,
     hasNextPage,
     fetchNextPage,
-    isFetchingNextPage 
+    isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: ["movies", debouncedSearchTerm, selectedGenre, sortBy],
     queryFn: async ({ pageParam = 1 }) => {
       if (debouncedSearchTerm) {
-        const { data } = await api.get("/search/movie", { params: { query: debouncedSearchTerm, page: pageParam } });
+        const { data } = await api.get("/search/movie", {
+          params: { query: debouncedSearchTerm, page: pageParam },
+        });
         return data;
       }
       const { data } = await api.get("/discover/movie", {
-        params: { with_genres: selectedGenre, sort_by: sortBy, page: pageParam },
+        params: {
+          with_genres: selectedGenre,
+          sort_by: sortBy,
+          page: pageParam,
+        },
       });
       return data;
     },
@@ -103,7 +112,7 @@ const HomePage = () => {
         return lastPage.page + 1;
       }
       return undefined;
-    }
+    },
   });
 
   const aiMutation = useMutation({
@@ -111,7 +120,8 @@ const HomePage = () => {
     mutationFn: fetchAiRecommendationsWithDetails,
   });
 
-  const browseMovies = browseData?.pages.flatMap((page) => page.results || []) || [];
+  const browseMovies =
+    browseData?.pages.flatMap((page) => page.results || []) || [];
 
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
@@ -149,7 +159,10 @@ const HomePage = () => {
       {activeTab === "ai" && (
         <div>
           {!aiMutation.data && !aiMutation.isPending && (
-            <MovieQuiz onComplete={(answers) => aiMutation.mutate(answers)} isLoading={false} />
+            <MovieQuiz
+              onComplete={(answers) => aiMutation.mutate(answers)}
+              isLoading={false}
+            />
           )}
 
           {aiMutation.isPending && (
@@ -160,9 +173,10 @@ const HomePage = () => {
             <div className="animate-in fade-in duration-500">
               <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
                 <h2 className="text-3xl font-black flex items-center gap-2">
-                  <Sparkles className="text-yellow-500 fill-yellow-500 w-7 h-7" /> Ваш идеальный выбор на вечер:
+                  <Sparkles className="text-yellow-500 fill-yellow-500 w-7 h-7" />{" "}
+                  Ваш идеальный выбор на вечер:
                 </h2>
-                <button 
+                <button
                   onClick={() => aiMutation.reset()}
                   className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm cursor-pointer"
                 >
@@ -172,26 +186,43 @@ const HomePage = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {aiMutation.data.map((movie) => (
-                  <div key={movie.id} className="bg-gray-800/40 border border-gray-800 rounded-3xl overflow-hidden flex flex-col shadow-xl">
-                    <Link to={`/movie/${movie.id}`} className="block relative overflow-hidden aspect-2/3 group">
+                  <div
+                    key={movie.id}
+                    className="bg-gray-800/40 border border-gray-800 rounded-3xl overflow-hidden flex flex-col shadow-xl"
+                  >
+                    <Link
+                      to={`/movie/${movie.id}`}
+                      className="block relative overflow-hidden aspect-2/3 group"
+                    >
                       <img
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         src={`${TMDB_IMAGE_W200}/${movie.poster_path}`}
                         alt={movie.title}
                       />
                       <div className="absolute top-4 right-4 bg-yellow-500 text-black font-black px-2.5 py-1 rounded-md text-xs shadow-md">
-                        IMDb {movie.vote_average ? movie.vote_average.toFixed(1) : "0.0"}
+                        IMDb{" "}
+                        {movie.vote_average
+                          ? movie.vote_average.toFixed(1)
+                          : "0.0"}
                       </div>
                     </Link>
                     <div className="p-5 flex-1 flex flex-col">
-                      <Link to={`/movie/${movie.id}`} className="font-bold text-xl hover:text-red-500 transition-colors block line-clamp-1 mb-1">
+                      <Link
+                        to={`/movie/${movie.id}`}
+                        className="font-bold text-xl hover:text-red-500 transition-colors block line-clamp-1 mb-1"
+                      >
                         {movie.title}
                       </Link>
                       <p className="text-xs text-gray-500 mb-4">
-                        {movie.release_date ? movie.release_date.split("-")[0] : "----"} г. • {movie.runtime} мин.
+                        {movie.release_date
+                          ? movie.release_date.split("-")[0]
+                          : "----"}{" "}
+                        г. • {movie.runtime} мин.
                       </p>
                       <div className="bg-gray-900/60 border border-gray-700/30 p-4 rounded-2xl flex-1 text-sm text-gray-300 leading-relaxed italic relative">
-                        <span className="text-2xl text-red-500 font-serif absolute -top-2 left-2">“</span>
+                        <span className="text-2xl text-red-500 font-serif absolute -top-2 left-2">
+                          “
+                        </span>
                         <p className="pt-1">{movie.ai_reason}</p>
                       </div>
                     </div>
@@ -232,12 +263,23 @@ const HomePage = () => {
                 <SelectTrigger className="w-full h-11 bg-gray-800 border border-gray-700 text-white rounded-xl focus:ring-2 focus:ring-red-500/40 focus:border-red-500 hover:border-gray-600 transition-all duration-200 px-4 text-sm font-medium cursor-pointer flex justify-between items-center outline-none">
                   <SelectValue placeholder="Выберите жанр" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-900 border border-gray-800 text-white rounded-xl shadow-2xl p-1.5 min-w-[var(--radix-select-trigger-width)]" position="popper" sideOffset={6}>
-                  <SelectItem value="all" className="text-gray-300 focus:bg-red-600 focus:text-white cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium outline-none transition-colors">
+                <SelectContent
+                  className="bg-gray-900 border border-gray-800 text-white rounded-xl shadow-2xl p-1.5 min-w-[var(--radix-select-trigger-width)]"
+                  position="popper"
+                  sideOffset={6}
+                >
+                  <SelectItem
+                    value="all"
+                    className="text-gray-300 focus:bg-red-600 focus:text-white cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium outline-none transition-colors"
+                  >
                     🍿 Все жанры
                   </SelectItem>
                   {genres?.map((genre: { id: number; name: string }) => (
-                    <SelectItem key={genre.id} value={String(genre.id)} className="text-gray-300 focus:bg-red-600 focus:text-white cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium outline-none transition-colors">
+                    <SelectItem
+                      key={genre.id}
+                      value={String(genre.id)}
+                      className="text-gray-300 focus:bg-red-600 focus:text-white cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium outline-none transition-colors"
+                    >
                       {genre.name}
                     </SelectItem>
                   ))}
@@ -250,14 +292,36 @@ const HomePage = () => {
               <label className="text-xs font-semibold uppercase tracking-widest text-gray-400 flex items-center gap-1.5 px-1">
                 <span className="text-red-500">↕</span> Сортировка
               </label>
-              <Select value={sortBy} onValueChange={(value) => setSortBy(value)}>
+              <Select
+                value={sortBy}
+                onValueChange={(value) => setSortBy(value)}
+              >
                 <SelectTrigger className="w-full h-11 bg-gray-800 border border-gray-700 text-white rounded-xl focus:ring-2 focus:ring-red-500/40 focus:border-red-500 hover:border-gray-600 transition-all duration-200 px-4 text-sm font-medium cursor-pointer flex justify-between items-center outline-none">
                   <SelectValue placeholder="Сортировать по" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-900 border border-gray-800 text-white rounded-xl shadow-2xl p-1.5 min-w-[var(--radix-select-trigger-width)]" position="popper" sideOffset={6}>
-                  <SelectItem value="popularity.desc" className="text-gray-300 focus:bg-red-600 focus:text-white cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium outline-none transition-colors">🔥 По популярности</SelectItem>
-                  <SelectItem value="vote_average.desc" className="text-gray-300 focus:bg-red-600 focus:text-white cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium outline-none transition-colors">⭐ По рейтингу</SelectItem>
-                  <SelectItem value="primary_release_date.desc" className="text-gray-300 focus:bg-red-600 focus:text-white cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium outline-none transition-colors">📅 По дате выхода</SelectItem>
+                <SelectContent
+                  className="bg-gray-900 border border-gray-800 text-white rounded-xl shadow-2xl p-1.5 min-w-[var(--radix-select-trigger-width)]"
+                  position="popper"
+                  sideOffset={6}
+                >
+                  <SelectItem
+                    value="popularity.desc"
+                    className="text-gray-300 focus:bg-red-600 focus:text-white cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium outline-none transition-colors"
+                  >
+                    🔥 По популярности
+                  </SelectItem>
+                  <SelectItem
+                    value="vote_average.desc"
+                    className="text-gray-300 focus:bg-red-600 focus:text-white cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium outline-none transition-colors"
+                  >
+                    ⭐ По рейтингу
+                  </SelectItem>
+                  <SelectItem
+                    value="primary_release_date.desc"
+                    className="text-gray-300 focus:bg-red-600 focus:text-white cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium outline-none transition-colors"
+                  >
+                    📅 По дате выхода
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -265,17 +329,50 @@ const HomePage = () => {
 
           {isBrowseLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-              {[...Array(10)].map((_, i) => <MovieSkeleton key={i} />)}
+              {[...Array(10)].map((_, i) => (
+                <MovieSkeleton key={i} />
+              ))}
+            </div>
+          ) : browseMovies.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in duration-300">
+              <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4 text-gray-500">
+                <Film className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                Ничего не найдено
+              </h3>
+              <p className="text-gray-400 text-sm max-w-xs mx-auto">
+                По запросу{" "}
+                <span className="text-red-500 font-semibold">
+                  "{searchTerm}"
+                </span>{" "}
+                не удалось найти ни одного фильма. Попробуйте изменить
+                формулировку.
+              </p>
             </div>
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 {browseMovies.map((movie) => (
-                  <Link key={movie.id} to={`/movie/${movie.id}`} className="group bg-gray-800 rounded-xl overflow-hidden hover:scale-105 transition-transform duration-200 shadow-lg">
-                    <img className="w-full h-auto" src={`${TMDB_IMAGE_W200}/${movie.poster_path}`} alt={movie.title} />
+                  <Link
+                    key={movie.id}
+                    to={`/movie/${movie.id}`}
+                    className="group bg-gray-800 rounded-xl overflow-hidden hover:scale-105 transition-transform duration-200 shadow-lg"
+                  >
+                    <img
+                      className="w-full h-auto"
+                      src={`${TMDB_IMAGE_W200}/${movie.poster_path}`}
+                      alt={movie.title}
+                    />
                     <div className="p-4">
-                      <p className="font-semibold text-lg truncate group-hover:text-red-500 transition-colors">{movie.title}</p>
-                      <p className="text-gray-400 text-sm">{movie.release_date ? movie.release_date.split("-")[0] : "----"}</p>
+                      <p className="font-semibold text-lg truncate group-hover:text-red-500 transition-colors">
+                        {movie.title}
+                      </p>
+                      <p className="text-gray-400 text-sm">
+                        {movie.release_date
+                          ? movie.release_date.split("-")[0]
+                          : "----"}
+                      </p>
                     </div>
                   </Link>
                 ))}
@@ -283,12 +380,16 @@ const HomePage = () => {
 
               {isFetchingNextPage && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-6">
-                  {[...Array(5)].map((_, i) => <MovieSkeleton key={i} />)}
+                  {[...Array(5)].map((_, i) => (
+                    <MovieSkeleton key={i} />
+                  ))}
                 </div>
               )}
               <div ref={ref} className="h-10 w-full" />
               {!hasNextPage && browseMovies.length > 0 && (
-                <p className="text-sm italic text-gray-500 text-center mt-10 pb-10">Вы просмотрели все фильмы</p>
+                <p className="text-sm italic text-gray-500 text-center mt-10 pb-10">
+                  Вы просмотрели все фильмы
+                </p>
               )}
             </>
           )}
