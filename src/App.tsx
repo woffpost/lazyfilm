@@ -9,7 +9,9 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import HomePage from "./pages/HomePage";
 import MoviePage from "./pages/MoviePage";
-import ActorPage from "./pages/ActorPage"
+import ActorPage from "./pages/ActorPage";
+import AboutPage from "./pages/AboutPage";
+import NotFoundPage from "./pages/NotFoundPage";
 import "nprogress/nprogress.css";
 
 if (typeof window !== "undefined") {
@@ -64,7 +66,8 @@ function MainComponent() {
         <Route path="/" element={<HomePage />} />
         <Route path="/movie/:id" element={<MoviePage />} />
         <Route path="/actor/:id" element={<ActorPage />} />
-        <Route path="*" element={<div>Страница не найдена</div>} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <Footer />
     </div>

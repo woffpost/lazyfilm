@@ -41,10 +41,31 @@ const MoviePage = () => {
     enabled: !!id
   })
 
-  if (isLoading) return <div>Загрузка информации...</div>
-  if (isError) return <div>Ошибка <Link to="/">Вернуться назад</Link></div>
+  if (isLoading) return (
+    <div className="max-w-6xl mx-auto p-6 animate-pulse">
+      <div className="h-4 w-36 bg-gray-800 rounded mb-8" />
+      <div className="flex flex-col md:flex-row gap-10">
+        <div className="shrink-0 w-full md:w-64 lg:w-72 aspect-2/3 bg-gray-800 rounded-2xl" />
+        <div className="flex-1 flex flex-col gap-4">
+          <div className="h-10 bg-gray-800 rounded-lg w-3/4" />
+          <div className="h-5 bg-gray-800 rounded-lg w-1/3" />
+          <div className="flex gap-3 mt-1">
+            <div className="h-7 w-20 bg-gray-800 rounded-md" />
+            <div className="h-7 w-14 bg-gray-800 rounded-md" />
+            <div className="h-7 w-16 bg-gray-800 rounded-md" />
+          </div>
+          <div className="h-5 bg-gray-800 rounded w-full mt-4" />
+          <div className="h-5 bg-gray-800 rounded w-full" />
+          <div className="h-5 bg-gray-800 rounded w-4/5" />
+          <div className="h-5 bg-gray-800 rounded w-2/3" />
+        </div>
+      </div>
+    </div>
+  );
+
+  if (isError) return <div className="max-w-6xl mx-auto p-6 text-gray-400">Ошибка загрузки. <Link to="/" className="text-red-500 hover:underline">Вернуться назад</Link></div>;
   if (!movie) return null;
-  
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <Link to="/" className="inline-block mb-8 text-gray-400 hover:text-white transition-colors">← Вернуться назад</Link>

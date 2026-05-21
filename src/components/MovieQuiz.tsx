@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface MovieQuizProps {
   onComplete: (answers: any) => void;
@@ -6,6 +7,7 @@ interface MovieQuizProps {
 }
 
 export const MovieQuiz = ({ onComplete, isLoading }: MovieQuizProps) => {
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [answers, setAnswers] = useState({
     mood: "",
@@ -27,11 +29,10 @@ export const MovieQuiz = ({ onComplete, isLoading }: MovieQuizProps) => {
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-red-600 mb-6"></div>
         <h2 className="text-2xl font-bold mb-2 text-white">
-          Подбираем идеальный кадр...
+          {t("quiz.loading.title")}
         </h2>
         <p className="text-gray-400 text-sm max-w-xs mx-auto">
-          Claude анализирует тысячи кинолент, чтобы найти три шедевра под ваше
-          настроение.
+          {t("quiz.loading.subtitle")}
         </p>
       </div>
     );
@@ -39,153 +40,105 @@ export const MovieQuiz = ({ onComplete, isLoading }: MovieQuizProps) => {
 
   return (
     <div className="max-w-2xl mx-auto bg-gray-900/50 border border-gray-800 p-8 rounded-3xl shadow-2xl backdrop-blur-sm mt-10">
-      <div
-        className="w-full bg-gray-800 h-1.5 rounded-full mb-8 overflow-hidden"
-        style={{ width: `${(step / 4) * 100}%` }}
-      ></div>
+      <div className="w-full bg-gray-800 h-1.5 rounded-full mb-8 overflow-hidden">
+        <div
+          className="h-full bg-red-600 rounded-full transition-all duration-500"
+          style={{ width: `${(step / 4) * 100}%` }}
+        />
+      </div>
 
       {step === 1 && (
         <div>
           <h2 className="text-3xl font-black text-center mb-6 text-white">
-            Какое у вас сегодня настроение?
+            {t("quiz.step1.title")}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button
-              onClick={() =>
-                selectOption("mood", "tired_after_work_wants_something_deep")
-              }
-              className="p-5 bg-gray-800/60 hover:bg-gray-800 border border-gray-700/50 hover:border-red-500 text-left rounded-2xl transition-all cursor-pointer group"
-            >
-              <span className="text-2xl mb-2 block">🌌</span>
-              <p className="font-bold text-white group-hover:text-red-500 transition-colors">
-                Устал после работы
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                Хочу глубокое, умное, но медитативное кино.
-              </p>
-            </button>
-            <button
-              onClick={() => selectOption("mood", "heavy_day_want_to_laugh")}
-              className="p-5 bg-gray-800/60 hover:bg-gray-800 border border-gray-700/50 hover:border-red-500 text-left rounded-2xl transition-all cursor-pointer group"
-            >
-              <span className="text-2xl mb-2 block">🍿</span>
-              <p className="font-bold text-white group-hover:text-red-500 transition-colors">
-                Перезагрузить мозг
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                Нужно что-то очень веселое, легкое или комедия.
-              </p>
-            </button>
-            <button
-              onClick={() => selectOption("mood", "date_night")}
-              className="p-5 bg-gray-800/60 hover:bg-gray-800 border border-gray-700/50 hover:border-red-500 text-left rounded-2xl transition-all cursor-pointer group"
-            >
-              <span className="text-2xl mb-2 block">🕯️</span>
-              <p className="font-bold text-white group-hover:text-red-500 transition-colors">
-                Романтический вечер
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                Идеально для просмотра со второй половинкой.
-              </p>
-            </button>
-            <button
-              onClick={() => selectOption("mood", "adrenaline_rush")}
-              className="p-5 bg-gray-800/60 hover:bg-gray-800 border border-gray-700/50 hover:border-red-500 text-left rounded-2xl transition-all cursor-pointer group"
-            >
-              <span className="text-2xl mb-2 block">😱</span>
-              <p className="font-bold text-white group-hover:text-red-500 transition-colors">
-                Пощекотать нервы
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                Острые сюжеты, триллеры, саспенс или ужасы.
-              </p>
-            </button>
+            {(
+              [
+                { value: "tired_after_work_wants_something_deep", key: "tired", emoji: "🌌" },
+                { value: "heavy_day_want_to_laugh", key: "laugh", emoji: "🍿" },
+                { value: "date_night", key: "date", emoji: "🕯️" },
+                { value: "adrenaline_rush", key: "thrill", emoji: "😱" },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.key}
+                onClick={() => selectOption("mood", opt.value)}
+                className="p-5 bg-gray-800/60 hover:bg-gray-800 border border-gray-700/50 hover:border-red-500 text-left rounded-2xl transition-all cursor-pointer group"
+              >
+                <span className="text-2xl mb-2 block">{opt.emoji}</span>
+                <p className="font-bold text-white group-hover:text-red-500 transition-colors">
+                  {t(`quiz.step1.${opt.key}.title`)}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {t(`quiz.step1.${opt.key}.desc`)}
+                </p>
+              </button>
+            ))}
           </div>
         </div>
       )}
 
-      {/* ШАГ 2: ТАЙМИНГ */}
       {step === 2 && (
         <div>
           <h2 className="text-3xl font-black text-center mb-6 text-white">
-            Сколько времени у вас есть?
+            {t("quiz.step2.title")}
           </h2>
           <div className="flex flex-col gap-3">
-            <button
-              onClick={() => selectOption("timing", "short")}
-              className="w-full p-4 bg-gray-800 hover:bg-gray-750 text-center font-semibold rounded-xl text-white cursor-pointer transition-colors"
-            >
-              ⏱️ Быстрое кино (до 90 минут)
-            </button>
-            <button
-              onClick={() => selectOption("timing", "standard")}
-              className="w-full p-4 bg-gray-800 hover:bg-gray-750 text-center font-semibold rounded-xl text-white cursor-pointer transition-colors"
-            >
-              🎬 Стандартный хронометраж (около 2 часов)
-            </button>
-            <button
-              onClick={() => selectOption("timing", "epic")}
-              className="w-full p-4 bg-gray-800 hover:bg-gray-750 text-center font-semibold rounded-xl text-white cursor-pointer transition-colors"
-            >
-              🏛️ Готов к эпику / масштабной драме (2.5+ часа)
-            </button>
+            {(["short", "standard", "epic"] as const).map((opt) => (
+              <button
+                key={opt}
+                onClick={() => selectOption("timing", opt)}
+                className="w-full p-4 bg-gray-800 hover:bg-gray-700 text-center font-semibold rounded-xl text-white cursor-pointer transition-colors"
+              >
+                {t(`quiz.step2.${opt}`)}
+              </button>
+            ))}
           </div>
           <button
             onClick={prevStep}
             className="mt-6 text-sm text-gray-500 hover:text-white transition-colors cursor-pointer block mx-auto"
           >
-            ← Назад
+            {t("quiz.back")}
           </button>
         </div>
       )}
 
-      {/* ШАГ 3: ЯЗЫК */}
       {step === 3 && (
         <div>
           <h2 className="text-3xl font-black text-center mb-6 text-white">
-            Язык вещания?
+            {t("quiz.step3.title")}
           </h2>
           <div className="grid grid-cols-3 gap-3">
-            <button
-              onClick={() => selectOption("language", "ru")}
-              className="p-4 bg-gray-800 hover:bg-gray-750 font-bold rounded-xl text-white cursor-pointer transition-colors text-center"
-            >
-              Русская озвучка
-            </button>
-            <button
-              onClick={() => selectOption("language", "en")}
-              className="p-4 bg-gray-800 hover:bg-gray-750 font-bold rounded-xl text-white cursor-pointer transition-colors text-center"
-            >
-              Оригинал + Субтитры
-            </button>
-            <button
-              onClick={() => selectOption("language", "any")}
-              className="p-4 bg-gray-800 hover:bg-gray-750 font-bold rounded-xl text-white cursor-pointer transition-colors text-center"
-            >
-              Не имеет значения
-            </button>
+            {(["ru", "en", "any"] as const).map((opt) => (
+              <button
+                key={opt}
+                onClick={() => selectOption("language", opt)}
+                className="p-4 bg-gray-800 hover:bg-gray-700 font-bold rounded-xl text-white cursor-pointer transition-colors text-center"
+              >
+                {t(`quiz.step3.${opt}`)}
+              </button>
+            ))}
           </div>
           <button
             onClick={prevStep}
             className="mt-6 text-sm text-gray-500 hover:text-white transition-colors cursor-pointer block mx-auto"
           >
-            ← Назад
+            {t("quiz.back")}
           </button>
         </div>
       )}
 
-      {/* ШАГ 4: ТЕКСТОВЫЙ ЗАПРОС И ОТПРАВКА */}
       {step === 4 && (
         <div>
           <h2 className="text-3xl font-black text-center mb-2 text-white">
-            Особые пожелания?
+            {t("quiz.step4.title")}
           </h2>
           <p className="text-center text-sm text-gray-400 mb-6">
-            Напишите всё, что придет в голову: любимый актер, атмосфера, или
-            "без пошлого юмора".
+            {t("quiz.step4.subtitle")}
           </p>
           <textarea
-            placeholder="Например: хочу фильм в стиле Киберпанк, или чтобы в главной роли был Том Харди..."
+            placeholder={t("quiz.step4.placeholder")}
             className="w-full p-4 h-32 bg-gray-800 border border-gray-700 rounded-2xl text-white outline-none focus:border-red-500 transition-all text-sm resize-none mb-4"
             value={answers.custom_wish}
             onChange={(e) =>
@@ -195,15 +148,15 @@ export const MovieQuiz = ({ onComplete, isLoading }: MovieQuizProps) => {
           <div className="flex gap-4">
             <button
               onClick={prevStep}
-              className="w-1/3 py-3.5 bg-gray-800 hover:bg-gray-750 text-white font-bold rounded-xl transition-colors cursor-pointer text-center text-sm"
+              className="w-1/3 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-colors cursor-pointer text-center text-sm"
             >
-              ← Назад
+              {t("quiz.step4.back")}
             </button>
             <button
               onClick={() => onComplete(answers)}
               className="w-2/3 py-3.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-900/30 text-center text-sm cursor-pointer"
             >
-              🍿 Узнать идеальный фильм
+              {t("quiz.step4.submit")}
             </button>
           </div>
         </div>
