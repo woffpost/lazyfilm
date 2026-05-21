@@ -33,44 +33,23 @@ interface QuizAnswers {
 }
 
 interface EnrichedAiMovie {
-  id: number;
+  id: number | null;
   title: string;
   poster_path: string | null;
-  release_date: string;
-  runtime: number;
-  vote_average: number;
+  release_date: string | null;
+  runtime: number | null;
+  vote_average: number | null;
   ai_reason: string;
-  [key: string]: unknown;
 }
 
-const fetchAiRecommendationsWithDetails = async (
+const fetchAiRecommendations = async (
   quizAnswers: QuizAnswers
 ): Promise<EnrichedAiMovie[]> => {
-  const { data: aiRecommendations } = await axios.post<
-    { title: string; year: number; reason: string }[]
-  >(`${API_URL}/api/ai/recommend/`, quizAnswers);
-
-  const enrichedMovies = await Promise.all(
-    aiRecommendations.map(async (rec) => {
-      try {
-        const cleanTitle = rec.title.replace(/['"«»]/g, "").trim();
-        const { data: searchData } = await api.get("/search/movie", {
-          params: { query: cleanTitle, year: rec.year },
-        });
-        if (searchData.results && searchData.results.length > 0) {
-          const firstMovie = searchData.results[0];
-          const { data: tmdbDetails } = await api.get(`/movie/${firstMovie.id}`);
-          return { ...tmdbDetails, ai_reason: rec.reason } as EnrichedAiMovie;
-        }
-        return null;
-      } catch (err) {
-        console.error("TMDB lookup error:", err);
-        return null;
-      }
-    })
+  const { data } = await axios.post<EnrichedAiMovie[]>(
+    `${API_URL}/api/ai/recommend/`,
+    quizAnswers
   );
-
-  return enrichedMovies.filter((movie): movie is EnrichedAiMovie => movie !== null);
+  return data;
 };
 
 const fetchGenres = async () => {
@@ -136,7 +115,7 @@ const HomePage = () => {
 
   const aiMutation = useMutation({
     mutationKey: ["aiRecommendations"],
-    mutationFn: fetchAiRecommendationsWithDetails,
+    mutationFn: fetchAiRecommendations,
   });
 
   const browseMovies =
@@ -244,51 +223,69 @@ const HomePage = () => {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {aiMutation.data.map((movie) => (
-                      <div
-                        key={movie.id}
-                        className="bg-gray-800/40 border border-gray-800 rounded-3xl overflow-hidden flex flex-col shadow-xl"
-                      >
-                        <Link
-                          to={`/movie/${movie.id}`}
-                          className="block relative overflow-hidden aspect-2/3 group"
+                    {aiMutation.data.map((movie, idx) => {
+                      const canLink = !!movie.id;
+                      const PosterWrapper = canLink
+                        ? ({ children }: { children: React.ReactNode }) => (
+                            <Link to={`/movie/${movie.id}`} className="block relative overflow-hidden aspect-2/3 group">
+                              {children}
+                            </Link>
+                          )
+                        : ({ children }: { children: React.ReactNode }) => (
+                            <div className="block relative overflow-hidden aspect-2/3">
+                              {children}
+                            </div>
+                          );
+
+                      return (
+                        <div
+                          key={movie.id ?? idx}
+                          className="bg-gray-800/40 border border-gray-800 rounded-3xl overflow-hidden flex flex-col shadow-xl"
                         >
-                          <img
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            src={`${TMDB_IMAGE_W200}/${movie.poster_path}`}
-                            alt={movie.title}
-                          />
-                          <div className="absolute top-4 right-4 bg-yellow-500 text-black font-black px-2.5 py-1 rounded-md text-xs shadow-md">
-                            IMDb{" "}
-                            {movie.vote_average
-                              ? movie.vote_average.toFixed(1)
-                              : "0.0"}
-                          </div>
-                        </Link>
-                        <div className="p-5 flex-1 flex flex-col">
-                          <Link
-                            to={`/movie/${movie.id}`}
-                            className="font-bold text-xl hover:text-red-500 transition-colors block line-clamp-1 mb-1"
-                          >
-                            {movie.title}
-                          </Link>
-                          <p className="text-xs text-gray-500 mb-4">
-                            {t("results.meta", {
-                              year: movie.release_date
-                                ? movie.release_date.split("-")[0]
-                                : "----",
-                              runtime: movie.runtime,
-                            })}
-                          </p>
-                          <div className="bg-gray-900/60 border border-gray-700/30 p-4 rounded-2xl flex-1 text-sm text-gray-300 leading-relaxed italic relative">
-                            <span className="text-2xl text-red-500 font-serif absolute -top-2 left-2">
-                              "
-                            </span>
-                            <p className="pt-1">{movie.ai_reason}</p>
+                          <PosterWrapper>
+                            {movie.poster_path ? (
+                              <img
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                src={`${TMDB_IMAGE_W200}${movie.poster_path}`}
+                                alt={movie.title}
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                                <Film className="w-16 h-16 text-gray-700" />
+                              </div>
+                            )}
+                            {movie.vote_average ? (
+                              <div className="absolute top-4 right-4 bg-yellow-500 text-black font-black px-2.5 py-1 rounded-md text-xs shadow-md">
+                                IMDb {movie.vote_average.toFixed(1)}
+                              </div>
+                            ) : null}
+                          </PosterWrapper>
+
+                          <div className="p-5 flex-1 flex flex-col">
+                            {canLink ? (
+                              <Link
+                                to={`/movie/${movie.id}`}
+                                className="font-bold text-xl hover:text-red-500 transition-colors block line-clamp-1 mb-1"
+                              >
+                                {movie.title}
+                              </Link>
+                            ) : (
+                              <p className="font-bold text-xl line-clamp-1 mb-1">{movie.title}</p>
+                            )}
+                            <p className="text-xs text-gray-500 mb-4">
+                              {t("results.meta", {
+                                year: movie.release_date ? movie.release_date.split("-")[0] : "----",
+                                runtime: movie.runtime ?? "—",
+                              })}
+                            </p>
+                            <div className="bg-gray-900/60 border border-gray-700/30 p-4 rounded-2xl flex-1 text-sm text-gray-300 leading-relaxed italic relative">
+                              <span className="text-2xl text-red-500 font-serif absolute -top-2 left-2">"</span>
+                              <p className="pt-1">{movie.ai_reason}</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
