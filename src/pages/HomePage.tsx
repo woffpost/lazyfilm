@@ -37,30 +37,44 @@ interface EnrichedAiMovie {
   [key: string]: unknown;
 }
 
-const fetchAiRecommendationsWithDetails = async (
-  quizAnswers: QuizAnswers,
-): Promise<EnrichedAiMovie[]> => {
-  // Проверяй, чтобы адрес строго соответствовал роуту со слэшем на конце!
-  const { data: aiRecommendations } = await axios.post<
-    { id: number; reason: string }[]
-  >("https://cinebrowselite-be.onrender.com/api/ai/recommend/", quizAnswers);
+const fetchAiRecommendationsWithDetails = async (quizAnswers: QuizAnswers): Promise<EnrichedAiMovie[]> => {
+  // Вызов улетает строго на верифицированный эндпоинт бэкенда
+  const { data: aiRecommendations } = await axios.post<{ title: string; year: number; reason: string }[]>(
+    "https://cinebrowselite-be.onrender.com/api/ai/recommend/", 
+    quizAnswers
+  );
 
   const enrichedMovies = await Promise.all(
     aiRecommendations.map(async (rec) => {
       try {
-        const { data: tmdbDetails } = await api.get(`/movie/${rec.id}`);
-        return { ...tmdbDetails, ai_reason: rec.reason } as EnrichedAiMovie;
+        // ИСПРАВЛЕНО: Используем нативный метод .trim() вместо питоновского .strip()
+        const cleanTitle = rec.title.replace(/['"«»]/g, "").trim();
+        
+        // Поиск точного ID фильма через клиентский браузер пользователя в TMDB
+        const { data: searchData } = await api.get("/search/movie", {
+          params: { query: cleanTitle, year: rec.year }
+        });
+
+        const firstResult = searchData.results?.[0];
+
+        if (firstResult) {
+          // Вытягиваем хронометраж и остальные детали из карточки TMDB
+          const { data: tmdbDetails } = await api.get(`/movie/${firstResult.id}`);
+          return { ...tmdbDetails, ai_reason: rec.reason } as EnrichedAiMovie;
+        }
+        
+        console.warn(`Фильм ${rec.title} не найден в поиске TMDB`);
+        return null;
       } catch (err) {
-        console.error(`Фильм с ID ${rec.id} не найден в базе TMDB`, err);
+        console.error(`Ошибка поиска для фильма ${rec.title}:`, err);
         return null;
       }
-    }),
+    })
   );
 
-  return enrichedMovies.filter(
-    (movie): movie is EnrichedAiMovie => movie !== null,
-  );
+  return enrichedMovies.filter((movie): movie is EnrichedAiMovie => movie !== null);
 };
+
 
 const fetchGenres = async () => {
   const { data } = await api.get("/genre/movie/list");
