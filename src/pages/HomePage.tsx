@@ -38,42 +38,47 @@ interface EnrichedAiMovie {
 }
 
 const fetchAiRecommendationsWithDetails = async (quizAnswers: QuizAnswers): Promise<EnrichedAiMovie[]> => {
-  // Вызов улетает строго на верифицированный эндпоинт бэкенда
+  // 1. Делаем запрос к нашему бэкенду (локально или на Render)
   const { data: aiRecommendations } = await axios.post<{ title: string; year: number; reason: string }[]>(
     "https://cinebrowselite-be.onrender.com/api/ai/recommend/", 
     quizAnswers
   );
 
+  // 2. Ищем фильмы в TMDB по названиям от Клода
   const enrichedMovies = await Promise.all(
     aiRecommendations.map(async (rec) => {
       try {
-        // ИСПРАВЛЕНО: Используем нативный метод .trim() вместо питоновского .strip()
+        // Очищаем название от лишних кавычек
         const cleanTitle = rec.title.replace(/['"«»]/g, "").trim();
         
-        // Поиск точного ID фильма через клиентский браузер пользователя в TMDB
+        // Делаем поисковый запрос к TMDB
         const { data: searchData } = await api.get("/search/movie", {
           params: { query: cleanTitle, year: rec.year }
         });
 
-        const firstResult = searchData.results?.[0];
-
-        if (firstResult) {
-          // Вытягиваем хронометраж и остальные детали из карточки TMDB
-          const { data: tmdbDetails } = await api.get(`/movie/${firstResult.id}`);
+        // ИСПРАВЛЕНО: Жестко берем самый первый элемент массива результатов [0]
+        if (searchData.results && searchData.results.length > 0) {
+          const firstMovie = searchData.results[0];
+          
+          // Запрашиваем полные детали фильма (чтобы получить runtime и точный рейтинг)
+          const { data: tmdbDetails } = await api.get(`/movie/${firstMovie.id}`);
+          
+          // Приклеиваем рецензию Клода к объекту от TMDB
           return { ...tmdbDetails, ai_reason: rec.reason } as EnrichedAiMovie;
         }
         
-        console.warn(`Фильм ${rec.title} не найден в поиске TMDB`);
         return null;
       } catch (err) {
-        console.error(`Ошибка поиска для фильма ${rec.title}:`, err);
+        console.error("Ошибка при поиске фильма в TMDB:", err);
         return null;
       }
     })
   );
 
+  // Отсекаем пустые элементы
   return enrichedMovies.filter((movie): movie is EnrichedAiMovie => movie !== null);
 };
+
 
 
 const fetchGenres = async () => {
