@@ -183,52 +183,60 @@ const HomePage = () => {
                   <RefreshCw className="w-4 h-4" /> Пройти опрос заново
                 </button>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {aiMutation.data.map((movie) => (
-                  <div
-                    key={movie.id}
-                    className="bg-gray-800/40 border border-gray-800 rounded-3xl overflow-hidden flex flex-col shadow-xl"
-                  >
-                    <Link
-                      to={`/movie/${movie.id}`}
-                      className="block relative overflow-hidden aspect-2/3 group"
+              {aiMutation.data && aiMutation.data.length === 0 ? (
+                <div className="text-center py-10 text-gray-400">
+                  <p>
+                    ИИ не смог верифицировать фильмы в базе данных. Попробуйте
+                    сформулировать запрос иначе.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {aiMutation.data?.map((movie) => (
+                    <div
+                      key={movie.id}
+                      className="bg-gray-800/40 border border-gray-800 rounded-3xl overflow-hidden flex flex-col shadow-xl"
                     >
-                      <img
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        src={`${TMDB_IMAGE_W200}/${movie.poster_path}`}
-                        alt={movie.title}
-                      />
-                      <div className="absolute top-4 right-4 bg-yellow-500 text-black font-black px-2.5 py-1 rounded-md text-xs shadow-md">
-                        IMDb{" "}
-                        {movie.vote_average
-                          ? movie.vote_average.toFixed(1)
-                          : "0.0"}
-                      </div>
-                    </Link>
-                    <div className="p-5 flex-1 flex flex-col">
                       <Link
                         to={`/movie/${movie.id}`}
-                        className="font-bold text-xl hover:text-red-500 transition-colors block line-clamp-1 mb-1"
+                        className="block relative overflow-hidden aspect-2/3 group"
                       >
-                        {movie.title}
+                        <img
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          src={`${TMDB_IMAGE_W200}/${movie.poster_path}`}
+                          alt={movie.title}
+                        />
+                        <div className="absolute top-4 right-4 bg-yellow-500 text-black font-black px-2.5 py-1 rounded-md text-xs shadow-md">
+                          IMDb{" "}
+                          {movie.vote_average
+                            ? movie.vote_average.toFixed(1)
+                            : "0.0"}
+                        </div>
                       </Link>
-                      <p className="text-xs text-gray-500 mb-4">
-                        {movie.release_date
-                          ? movie.release_date.split("-")[0]
-                          : "----"}{" "}
-                        г. • {movie.runtime} мин.
-                      </p>
-                      <div className="bg-gray-900/60 border border-gray-700/30 p-4 rounded-2xl flex-1 text-sm text-gray-300 leading-relaxed italic relative">
-                        <span className="text-2xl text-red-500 font-serif absolute -top-2 left-2">
-                          “
-                        </span>
-                        <p className="pt-1">{movie.ai_reason}</p>
+                      <div className="p-5 flex-1 flex flex-col">
+                        <Link
+                          to={`/movie/${movie.id}`}
+                          className="font-bold text-xl hover:text-red-500 transition-colors block line-clamp-1 mb-1"
+                        >
+                          {movie.title}
+                        </Link>
+                        <p className="text-xs text-gray-500 mb-4">
+                          {movie.release_date
+                            ? movie.release_date.split("-")[0]
+                            : "----"}{" "}
+                          г. • {movie.runtime} мин.
+                        </p>
+                        <div className="bg-gray-900/60 border border-gray-700/30 p-4 rounded-2xl flex-1 text-sm text-gray-300 leading-relaxed italic relative">
+                          <span className="text-2xl text-red-500 font-serif absolute -top-2 left-2">
+                            “
+                          </span>
+                          <p className="pt-1">{movie.ai_reason}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
