@@ -34,7 +34,7 @@ export const Footer = () => {
       <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-gray-600">
           <Film className="w-4 h-4" />
-          <span className="font-bold text-sm tracking-wider uppercase">CineBrowse</span>
+          <span className="font-bold text-sm tracking-wider uppercase">LazyFilm</span>
           <span className="text-gray-700 text-sm">© {new Date().getFullYear()}</span>
         </div>
 

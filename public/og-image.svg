@@ -50,7 +50,7 @@
   <text x="192" y="301" text-anchor="middle" fill="#fca5a5" font-size="15" font-weight="600" letter-spacing="0.5">Powered by Claude API</text>
 
   <!-- Main title -->
-  <text x="76" y="190" fill="white" font-size="102" font-weight="900" letter-spacing="-3">CineBrowse</text>
+  <text x="76" y="190" fill="white" font-size="102" font-weight="900" letter-spacing="-3">LazyFilm</text>
 
   <!-- Tagline -->
   <text x="76" y="390" fill="#94a3b8" font-size="34" font-weight="400">AI-powered movie recommendations</text>

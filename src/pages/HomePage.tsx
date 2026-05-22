@@ -58,9 +58,9 @@ const fetchGenres = async () => {
 };
 
 const SEO_DESCRIPTIONS: Record<string, string> = {
-  en: "CineBrowse — AI-powered movie recommendations. Tell Claude your mood and get 3 perfect films for tonight. Browse by genre, rating, and release date.",
-  ru: "CineBrowse — рекомендации фильмов на основе ИИ. Расскажи Claude о настроении и получи 3 идеальных фильма на вечер.",
-  ro: "CineBrowse — recomandări de filme bazate pe AI. Spune-i lui Claude starea ta și primești 3 filme perfecte pentru diseară.",
+  en: "LazyFilm — AI-powered movie recommendations. Tell Claude your mood and get 3 perfect films for tonight. Browse by genre, rating, and release date.",
+  ru: "LazyFilm — рекомендации фильмов на основе ИИ. Расскажи Claude о настроении и получи 3 идеальных фильма на вечер.",
+  ro: "LazyFilm — recomandări de filme bazate pe AI. Spune-i lui Claude starea ta și primești 3 filme perfecte pentru diseară.",
 };
 
 const HomePage = () => {
@@ -131,13 +131,13 @@ const HomePage = () => {
     <>
       <Helmet>
         <html lang={i18n.language} />
-        <title>CineBrowse — AI Movie Recommendations</title>
+        <title>LazyFilm — AI Movie Recommendations</title>
         <meta name="description" content={seoDescription} />
-        <meta property="og:title" content="CineBrowse — AI Movie Recommendations" />
+        <meta property="og:title" content="LazyFilm — AI Movie Recommendations" />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content="CineBrowse — AI Movie Recommendations" />
+        <meta name="twitter:title" content="LazyFilm — AI Movie Recommendations" />
         <meta name="twitter:description" content={seoDescription} />
       </Helmet>
 

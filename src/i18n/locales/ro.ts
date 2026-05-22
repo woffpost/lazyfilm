@@ -80,7 +80,7 @@ const ro = {
   about: {
     title: "Despre proiect",
     description:
-      "CineBrowse este un proiect full-stack creat pentru a demonstra dezvoltarea web modernă cu integrare AI. Răspunzi la un scurt chestionar despre starea ta și timp — Claude API alege 3 filme perfecte pentru diseară. Poți explora și catalogul complet TMDB după gen, rating sau dată de lansare.",
+      "LazyFilm este un proiect full-stack creat pentru a demonstra dezvoltarea web modernă cu integrare AI. Răspunzi la un scurt chestionar despre starea ta și timp — Claude API alege 3 filme perfecte pentru diseară. Poți explora și catalogul complet TMDB după gen, rating sau dată de lansare.",
     how: {
       title: "Cum funcționează",
       steps: [

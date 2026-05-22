@@ -78,9 +78,9 @@ const en = {
     built: "Built with Claude API & TMDB",
   },
   about: {
-    title: "About CineBrowse",
+    title: "About LazyFilm",
     description:
-      "CineBrowse is a full-stack pet project built to demonstrate modern web development with AI integration. Answer a short quiz about your mood and time — Claude API picks 3 perfect movies for tonight. You can also browse the full TMDB catalogue by genre, rating, or release date.",
+      "LazyFilm is a full-stack pet project built to demonstrate modern web development with AI integration. Answer a short quiz about your mood and time — Claude API picks 3 perfect movies for tonight. You can also browse the full TMDB catalogue by genre, rating, or release date.",
     how: {
       title: "How it works",
       steps: [

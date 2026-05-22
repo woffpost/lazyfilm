@@ -20,7 +20,7 @@ export const Header = () => {
         >
           <Film className="w-6 h-6 text-red-600" />
           <span className="font-black text-xl tracking-wider uppercase">
-            CineBrowse
+            LazyFilm
           </span>
         </Link>
 

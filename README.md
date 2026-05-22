@@ -1,4 +1,4 @@
-# CineBrowse
+# LazyFilm
 
 > AI-powered movie recommendations + full catalogue browser.  
 > Tell Claude your mood — get 3 perfect films for tonight.

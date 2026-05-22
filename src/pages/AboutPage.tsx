@@ -50,7 +50,7 @@ const AboutPage = () => {
   return (
     <>
       <Helmet>
-        <title>About — CineBrowse</title>
+        <title>About — LazyFilm</title>
       </Helmet>
 
       <div className="max-w-3xl mx-auto px-4 pb-20">
