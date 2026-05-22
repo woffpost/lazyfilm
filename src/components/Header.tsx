@@ -25,7 +25,7 @@ export const Header = () => {
         </Link>
 
         <div className="flex items-center gap-6">
-          <nav className="flex gap-6 text-sm font-medium text-gray-400">
+          <nav className="hidden sm:flex gap-6 text-sm font-medium text-gray-400">
             <Link to="/" className="hover:text-white transition-colors">
               {t("nav.home")}
             </Link>

@@ -4,30 +4,39 @@ import { useTranslation } from "react-i18next";
 import api from "../api/axios";
 import { TMDB_BACKDROP } from "@/constants/tmdb";
 
-const fetchTrending = async () => {
-  const { data } = await api.get("/trending/movie/day");
+const TMDB_LANG: Record<string, string> = {
+  en: "en-US",
+  ru: "ru-RU",
+  ro: "ro-RO",
+};
+
+const fetchTrending = async (language: string) => {
+  const { data } = await api.get("/trending/movie/day", {
+    params: { language },
+  });
   return data.results[0];
 };
 
 export const TrendingBanner = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const tmdbLang = TMDB_LANG[i18n.language] ?? "en-US";
 
   const { data: movie, isLoading } = useQuery({
-    queryKey: ["trending-banner"],
-    queryFn: fetchTrending,
+    queryKey: ["trending-banner", tmdbLang],
+    queryFn: () => fetchTrending(tmdbLang),
     staleTime: 1000 * 60 * 60,
   });
 
   if (isLoading) {
     return (
-      <div className="w-full h-[420px] sm:h-[520px] bg-gray-900 animate-pulse mb-16" />
+      <div className="w-full h-105 sm:h-130 bg-gray-900 animate-pulse mb-16" />
     );
   }
 
   if (!movie?.backdrop_path) return null;
 
   return (
-    <div className="relative w-full h-[420px] sm:h-[520px] overflow-hidden mb-16">
+    <div className="relative w-full h-105 sm:h-130 overflow-hidden mb-16">
       <img
         src={`${TMDB_BACKDROP}${movie.backdrop_path}`}
         alt={movie.title}
@@ -35,8 +44,8 @@ export const TrendingBanner = () => {
       />
 
       {/* gradients */}
-      <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-gray-900/10" />
-      <div className="absolute inset-0 bg-gradient-to-r from-gray-900/90 via-gray-900/40 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-gray-900 via-gray-900/50 to-gray-900/10" />
+      <div className="absolute inset-0 bg-linear-to-r from-gray-900/90 via-gray-900/40 to-transparent" />
 
       {/* content */}
       <div className="absolute bottom-0 left-0 p-8 sm:p-12 max-w-2xl">
