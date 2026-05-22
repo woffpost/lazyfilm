@@ -144,6 +144,12 @@ export const MovieQuiz = ({ onComplete, isLoading }: MovieQuizProps) => {
             onChange={(e) =>
               setAnswers((prev) => ({ ...prev, custom_wish: e.target.value }))
             }
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                onComplete(answers);
+              }
+            }}
           />
           <div className="flex gap-4">
             <button
