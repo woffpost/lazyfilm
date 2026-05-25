@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useInfiniteQuery, useQuery, useMutation } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
 import { useDebounce } from "use-debounce";
@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 
 import api from "../api/axios";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import { MovieSkeleton } from "../components/MovieSkeleton";
 import { MovieQuiz } from "@/components/MovieQuiz";
@@ -43,11 +42,13 @@ interface EnrichedAiMovie {
 }
 
 const fetchAiRecommendations = async (
-  quizAnswers: QuizAnswers
+  quizAnswers: QuizAnswers,
+  signal?: AbortSignal
 ): Promise<EnrichedAiMovie[]> => {
-  const { data } = await axios.post<EnrichedAiMovie[]>(
+  const { data } = await api.post<EnrichedAiMovie[]>(
     `${API_URL}/api/ai/recommend/`,
-    quizAnswers
+    quizAnswers,
+    { signal }
   );
   return data;
 };
@@ -72,6 +73,9 @@ const HomePage = () => {
   const [sortBy, setSortBy] = useState<string>("popularity.desc");
 
   const { ref, inView } = useInView();
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   const seoDescription =
     SEO_DESCRIPTIONS[i18n.language] ?? SEO_DESCRIPTIONS.en;
@@ -79,6 +83,7 @@ const HomePage = () => {
   const { data: genres } = useQuery({
     queryKey: ["genres"],
     queryFn: fetchGenres,
+    staleTime: Infinity,
   });
 
   const {
@@ -111,11 +116,17 @@ const HomePage = () => {
       if (lastPage.page < lastPage.total_pages) return lastPage.page + 1;
       return undefined;
     },
+    staleTime: 5 * 60 * 1000,
+    maxPages: 10,
   });
 
   const aiMutation = useMutation({
     mutationKey: ["aiRecommendations"],
-    mutationFn: fetchAiRecommendations,
+    mutationFn: (quizAnswers: QuizAnswers) => {
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
+      return fetchAiRecommendations(quizAnswers, abortRef.current.signal);
+    },
   });
 
   const browseMovies =
@@ -225,41 +236,41 @@ const HomePage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {aiMutation.data.map((movie, idx) => {
                       const canLink = !!movie.id;
-                      const PosterWrapper = canLink
-                        ? ({ children }: { children: React.ReactNode }) => (
-                            <Link to={`/movie/${movie.id}`} className="block relative overflow-hidden aspect-2/3 group">
-                              {children}
-                            </Link>
-                          )
-                        : ({ children }: { children: React.ReactNode }) => (
-                            <div className="block relative overflow-hidden aspect-2/3">
-                              {children}
+                      const posterContent = (
+                        <>
+                          {movie.poster_path ? (
+                            <img
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              src={`${TMDB_IMAGE_W200}${movie.poster_path}`}
+                              alt={movie.title}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                              <Film className="w-16 h-16 text-gray-700" />
                             </div>
-                          );
+                          )}
+                          {movie.vote_average ? (
+                            <div className="absolute top-4 right-4 bg-yellow-500 text-black font-black px-2.5 py-1 rounded-md text-xs shadow-md">
+                              IMDb {movie.vote_average.toFixed(1)}
+                            </div>
+                          ) : null}
+                        </>
+                      );
 
                       return (
                         <div
                           key={movie.id ?? idx}
                           className="bg-gray-800/40 border border-gray-800 rounded-3xl overflow-hidden flex flex-col shadow-xl"
                         >
-                          <PosterWrapper>
-                            {movie.poster_path ? (
-                              <img
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                src={`${TMDB_IMAGE_W200}${movie.poster_path}`}
-                                alt={movie.title}
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                                <Film className="w-16 h-16 text-gray-700" />
-                              </div>
-                            )}
-                            {movie.vote_average ? (
-                              <div className="absolute top-4 right-4 bg-yellow-500 text-black font-black px-2.5 py-1 rounded-md text-xs shadow-md">
-                                IMDb {movie.vote_average.toFixed(1)}
-                              </div>
-                            ) : null}
-                          </PosterWrapper>
+                          {canLink ? (
+                            <Link to={`/movie/${movie.id}`} className="block relative overflow-hidden aspect-2/3 group">
+                              {posterContent}
+                            </Link>
+                          ) : (
+                            <div className="block relative overflow-hidden aspect-2/3">
+                              {posterContent}
+                            </div>
+                          )}
 
                           <div className="p-5 flex-1 flex flex-col">
                             {canLink ? (
